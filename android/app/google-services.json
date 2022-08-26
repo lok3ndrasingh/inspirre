@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "279088733758",
+    "project_id": "inspirre-3d651",
+    "storage_bucket": "inspirre-3d651.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:279088733758:android:316eab5645e18335bcfb6f",
+        "android_client_info": {
+          "package_name": "com.inspirre"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "279088733758-smjhdvgnvl1rudfcvm1s16qhuuls6kr8.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyABL12KBJVK6W62Vj7Px-vtz8foNn3zEeQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "279088733758-smjhdvgnvl1rudfcvm1s16qhuuls6kr8.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
