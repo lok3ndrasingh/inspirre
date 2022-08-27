@@ -10,25 +10,30 @@ import {
   Modal,
   Linking,
   BackHandler,
+  ScrollView,
+  Pressable,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import firestore from '@react-native-firebase/firestore';
 import {BLUE, NAVY, TEAL, WHITE} from '../constants/Colors';
 import Loader from '../components/Loader';
+import Spacer2x from '../components/Spacer2x';
 const {height, width} = Dimensions.get('screen');
 
 export default function Home() {
   const [refreshing, setRefreshing] = useState(false);
   const [isLoading, setLoading] = useState(false);
   const [quotesList, setQuotesList] = useState([]);
+  const [filtersList, setFiltersList] = useState([]);
   const [exitModal, setExitModal] = useState(false);
+  const [currentSelected, setSelected] = useState(-1);
   const getQuotes = async () => {
     setLoading(true);
 
     const userDocument = firestore().collection('quotes').doc('inspirre');
+    const filterDocument = firestore().collection('quotes').doc('filters');
     const data = await userDocument.get();
-
-    setQuotesList(data?._data);
+    const filterData = await filterDocument.get();
 
     let quotesArr = [];
     for (let i in data?._data) {
@@ -39,6 +44,13 @@ export default function Home() {
     setQuotesList(quotesArr);
     setRefreshing(false);
     console.log(quotesArr);
+    console.log(filterData);
+    let filterArr = [];
+    for (let f in filterData?._data) {
+      filterArr.push(filterData?._data[f]);
+    }
+    console.log('Filters Arr : ', filterArr);
+    setFiltersList(filterArr);
   };
   useEffect(() => {
     getQuotes();
@@ -96,6 +108,27 @@ export default function Home() {
           }}>
           Inspirre
         </Text>
+      </View>
+      <Spacer2x />
+      <Spacer2x />
+      <View style={{marginLeft: 20}}>
+        <ScrollView horizontal>
+          {filtersList.map((x, i) => (
+            <TouchableOpacity
+            onPress={()=>setSelected(i)}
+              style={{
+                height: 30,
+                borderRadius: 5,
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginRight: 10,
+                paddingHorizontal: 10,
+                backgroundColor: currentSelected==i ? BLUE : `rgba(0,0,0,.5)`,
+              }}>
+              <Text style={{color: 'white', fontWeight :  currentSelected==i ? 'bold': 'normal' }}>{x}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       </View>
       {isLoading ? (
         <Loader isVisible={true} />
