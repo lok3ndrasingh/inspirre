@@ -12,15 +12,18 @@ import {
   BackHandler,
   ScrollView,
   Pressable,
+  Animated,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import firestore from '@react-native-firebase/firestore';
 import {BLUE, NAVY, TEAL, WHITE} from '../constants/Colors';
 import Loader from '../components/Loader';
 import Spacer2x from '../components/Spacer2x';
 const {height, width} = Dimensions.get('screen');
+import LinearGradient from 'react-native-linear-gradient';
 
 export default function Home() {
+  const scrollX = useRef(new Animated.Value(0)).current;
   const [refreshing, setRefreshing] = useState(false);
   const [isLoading, setLoading] = useState(false);
   const [quotesList, setQuotesList] = useState([]);
@@ -114,82 +117,195 @@ export default function Home() {
       <View style={{marginLeft: 20}}>
         <ScrollView horizontal>
           {filtersList.map((x, i) => (
-            <TouchableOpacity
-            onPress={()=>setSelected(i)}
+            <LinearGradient
+              colors={
+                currentSelected == i
+                  ? ['red', 'yellow', 'aqua']
+                  : ['black', 'white']
+              }
+              start={{x: 0, y: 0}}
+              end={{x: 1, y: 1}}
               style={{
                 height: 30,
-                borderRadius: 5,
+                borderRadius: 6,
                 justifyContent: 'center',
                 alignItems: 'center',
                 marginRight: 10,
-                paddingHorizontal: 10,
-                backgroundColor: currentSelected==i ? BLUE : `rgba(0,0,0,.5)`,
               }}>
-              <Text style={{color: 'white', fontWeight :  currentSelected==i ? 'bold': 'normal' }}>{x}</Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => setSelected(i)}
+                style={{
+                  height: 28,
+                  borderRadius: 5,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  marginLeft: 1,
+                  marginRight: 1.5,
+                  marginTop: 1,
+                  marginBottom: 1,
+                  paddingHorizontal: 10,
+                  zIndex: 1,
+                  backgroundColor: 'black',
+                  // backgroundColor: currentSelected == i ? BLUE : `rgba(0,0,0,.5)`,
+                }}>
+                <Text
+                  style={{
+                    color: 'white',
+                    fontWeight: currentSelected == i ? 'bold' : 'normal',
+                  }}>
+                  {x}
+                </Text>
+              </TouchableOpacity>
+            </LinearGradient>
           ))}
         </ScrollView>
       </View>
       {isLoading ? (
         <Loader isVisible={true} />
       ) : (
-        <FlatList
+        <Animated.FlatList
           onRefresh={onRefresh}
           refreshing={refreshing}
           data={quotesList}
           pagingEnabled
-          horizontal
-          renderItem={({item, index}) => (
-            <ImageBackground
-              imageStyle={{borderRadius: 10}}
-              source={require('../assets/images/mountains.jpg')}
-              style={{
-                width: width - 40,
-                marginHorizontal: 20,
-                borderRadius: 10,
-                alignSelf: 'center',
-                backgroundColor: TEAL,
-                height: height - 200,
-                padding: 10,
-                justifyContent: 'center',
-                alignItems: 'center',
-                shadowColor: '#000',
-                shadowOffset: {
-                  width: 0,
-                  height: 4,
-                },
-                shadowOpacity: 0.32,
-                shadowRadius: 5.46,
-
-                elevation: 9,
-              }}>
-              <Text
-                style={{
-                  color: WHITE,
-                  fontSize: 20,
-                  fontWeight: '400',
-                  textAlign: 'justify',
-                }}>
-                {`"${item?.[0]}"`}
-              </Text>
-              <Text
-                style={{
-                  color: WHITE,
-                  // alignSelf: 'flex-end',
-                  position: 'absolute',
-                  bottom: 50,
-                }}>{`- ${item?.[1]}`}</Text>
-              {/* <Text style={{color: WHITE }}>{item?.[2]}</Text> */}
-              <TouchableOpacity
-                onPress={() => handleShare(item)}
-                style={{position: 'absolute', bottom: 20, right: 20}}>
-                <Image
-                  source={require('../assets/icons/share.png')}
-                  style={{height: 20, width: 20, tintColor: WHITE}}
-                />
-              </TouchableOpacity>
-            </ImageBackground>
+          extraData={quotesList}
+          onScroll={Animated.event(
+            [{nativeEvent: {contentOffset: {x: scrollX}}}],
+            {useNativeDriver: true},
           )}
+          // onMomentumScrollEnd={()=>alert('Hi')}
+          horizontal
+          renderItem={({item, index}) => {
+            const inputRange = [
+              (index - 1) * width,
+              width * index,
+              width * (index + 1),
+            ];
+            const scale = scrollX.interpolate({
+              inputRange,
+              outputRange: [1, 1, 0],
+            });
+            const rotate = scrollX.interpolate({
+              inputRange,
+              outputRange: ['0deg', '0deg', '-30deg'],
+            });
+
+            const rotateY = scrollX.interpolate({
+              inputRange,
+              outputRange: ['0deg', '360deg', '0deg'],
+            });
+            const opacityRange = [
+              (index - 1) * width,
+              index * width,
+              width * (index + 1),
+            ];
+            const opacity = scrollX.interpolate({
+              inputRange: opacityRange,
+              outputRange: [1, 1, 0],
+            });
+
+            const scaleYText = scrollX.interpolate({
+              inputRange: opacityRange,
+              outputRange: [1.2, 1, 0],
+            });
+            const scaleCircle = scrollX.interpolate({
+              inputRange: opacityRange,
+              outputRange: [0, 1, 0],
+            });
+
+            return (
+              <Animated.View
+                // imageStyle={{borderRadius: 10}}
+                // source={require('../assets/images/mountains.jpg')}
+                style={{
+                  width: width - 40,
+                  marginHorizontal: 20,
+                  borderRadius: 10,
+                  alignSelf: 'center',
+                  backgroundColor: TEAL,
+                  height: height - 200,
+                  padding: 10,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  shadowColor: '#000',
+                  shadowOffset: {
+                    width: 0,
+                    height: 4,
+                  },
+                  shadowOpacity: 0.32,
+                  shadowRadius: 5.46,
+
+                  elevation: 9,
+                  transform: [{scale, rotate}],
+                  opacity,
+                }}>
+                <Image
+                  source={require('../assets/images/mountains.jpg')}
+                  style={{
+                    height: height - 200,
+                    width: width - 40,
+                    position: 'absolute',
+                    zIndex: -100,
+                    borderRadius: 10,
+                  }}
+                  blurRadius={5}
+                />
+                {/* Quote */}
+                <Animated.Text
+                  style={{
+                    color: WHITE,
+                    fontSize: 20,
+                    fontWeight: '400',
+                    textAlign: 'justify',
+                    transform: [{scaleY: scaleYText}],
+                  }}>
+                  {`"${item?.[0]}"`}
+                </Animated.Text>
+                {/* Author */}
+                <Animated.Text
+                  style={{
+                    color: WHITE,
+                    // alignSelf: 'flex-end',
+                    position: 'absolute',
+                    bottom: 70,
+                    transform: [{rotateY}],
+                  }}>{`- ${item?.[1]}`}</Animated.Text>
+                {/* <Text style={{color: WHITE }}>{item?.[2]}</Text> */}
+                <TouchableOpacity
+                  onPress={() => handleShare(item)}
+                  style={{position: 'absolute', bottom: 20, right: 20}}>
+                  <Image
+                    source={require('../assets/icons/share.png')}
+                    style={{height: 20, width: 20, tintColor: WHITE}}
+                  />
+                </TouchableOpacity>
+
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    position: 'absolute',
+                    bottom: 10,
+                    left: 10,
+                  }}>
+                  {['gray', 'green', 'yellow', 'blue', 'white'].map(x => (
+                    <Animated.Image
+                      // source={require('../assets/images/mountains.jpg')}
+                      style={{
+                        height: 30,
+                        width: 30,
+                        marginHorizontal: 5,
+                        borderRadius: 25,
+                        borderWidth: 1,
+                        borderColor: x,
+                        backgroundColor: 'hsl(203deg 58% 17%)',
+                        opacity,
+                        transform: [{scale: scaleCircle}],
+                      }}></Animated.Image>
+                  ))}
+                </View>
+              </Animated.View>
+            );
+          }}
         />
       )}
       <Modal visible={exitModal} transparent animationType="fade">
